@@ -1,5 +1,5 @@
 {
-    "name": "Module speed run",
+    "name": "Unique ID",
     "description": "",
     "dependencies": {
         "core": "*",
