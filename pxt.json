@@ -1,5 +1,5 @@
 {
-    "name": "Unique ID",
+    "name": "Microbit Project DV.A5: Repeater",
     "description": "",
     "dependencies": {
         "core": "*",
