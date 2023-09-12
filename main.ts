@@ -43,10 +43,11 @@ function toCharCode (char: string) {
     toCharCodecharcode = 0
     loopIndex = 15
     while (char != String.fromCharCode(toCharCodecharcode)) {
-        if (char.compare(String.fromCharCode(2 ** loopIndex + toCharCodecharcode)) >= 0) {
-            toCharCodecharcode += 2 ** loopIndex
+        if (char.compare(String.fromCharCode(2 ** loopIndex - 1 + toCharCodecharcode)) < 0) {
+            loopIndex += -1
+        } else {
+            toCharCodecharcode += 2 ** (loopIndex - 1)
         }
-        loopIndex += -1
     }
     return toCharCodecharcode
 }
