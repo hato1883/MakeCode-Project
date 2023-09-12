@@ -17,12 +17,25 @@ enum RadioMessage {
 /**
  * debug - radio send a trash message
  */
+function containsOurID (charcode: number) {
+    containsOurIDcharcode = charcode
+    index = countIDsInChar - 1
+    while (index > idPosInChar) {
+        if (2 ** index <= containsOurIDcharcode) {
+            containsOurIDcharcode = containsOurIDcharcode - 2 ** index
+        }
+        index += -1
+    }
+    return Math.idiv(containsOurIDcharcode, 2 ** idPosInChar) == 1
+}
+function removeThisID (input2: number) {
+    return input2 - 2 ** idPosInChar
+}
 // IF
 // DeviceID has no been set, then set DeviceID = NextID and then broadcast the increase of NextID
 // ELSE
 // Debug purpose Send a radio signal to all listening units except it self with a value of 0
 input.onButtonPressed(Button.A, function () {
-    // Everything in ELSE block is purely for debugging
     if (deviceID == -1) {
         deviceID = nextID
         nextID += 1
@@ -31,56 +44,43 @@ input.onButtonPressed(Button.A, function () {
         sendTestMSG()
     }
 })
-// Adds power's of 2 until we have the same char.
-// Compares before adding to se if calcuated charcode is less or bigger than received char's code.
-function toCharCode (char: string) {
-    toCharCodecharcode = 0
-    loopIndex = 15
-    while (char != String.fromCharCode(toCharCodecharcode)) {
-        if (char.compare(String.fromCharCode(2 ** loopIndex + toCharCodecharcode)) >= 0) {
-            toCharCodecharcode += 2 ** loopIndex
-        }
-        loopIndex += -1
+function showData (recivedText: string) {
+    for (let index = 0; index <= 8 - countIDChars; index++) {
+        basic.showNumber(index)
+        basic.clearScreen()
+        basic.pause(100)
+        basic.showNumber(toCharcode(recivedText.charAt(index + countIDChars)))
+        basic.clearScreen()
+        basic.pause(500)
     }
-    return toCharCodecharcode
+}
+function toCharcode (char: string) {
+    if (char.isEmpty()) {
+        return -1
+    }
+    toCharcodecharcode = 0
+    index = countIDsInChar - 1
+    while (char != String.fromCharCode(toCharcodecharcode)) {
+        if (char.compare(String.fromCharCode(2 ** index + toCharcodecharcode)) >= 0) {
+            toCharcodecharcode += 2 ** index
+        }
+        index += -1
+    }
+    return toCharcodecharcode
 }
 radio.onReceivedString(function (receivedString) {
-    // Takes char from position 0 if deviceID is > 16 due to 16/16 = 1 then truncated to just 1. which gives us 1-1. all other values will be 0.x where truncation only gives us 0
-    extenderSignal = toCharCode(receivedString.charAt(1 - Math.trunc(deviceID / 16)))
-    if (containsExtenderID(extenderSignal)) {
-        extenderSignal = extenderSignal - 2 ** (deviceID % 16)
-        radioMessage = receivedString.substr(2, receivedString.length - 3)
-        // check if we are using the first 16 ids or the last 16 ids
-        if (deviceID > 15) {
-            extendSignal("" + String.fromCharCode(extenderSignal) + receivedString.charAt(1), radioMessage)
-        } else {
-            extendSignal("" + receivedString.charAt(0) + String.fromCharCode(extenderSignal), radioMessage)
-        }
+    radioReceivedextenderSignal = toCharcode(receivedString.charAt(idMsgPos))
+    if (containsOurID(radioReceivedextenderSignal)) {
+        radioReceivedextenderSignal = removeThisID(radioReceivedextenderSignal)
+        animateExtension()
+        showData(receivedString)
+        radio.sendString("" + (replaceCharAt(String.fromCharCode(radioReceivedextenderSignal), receivedString, idMsgPos)))
     } else {
         basic.showIcon(IconNames.No)
         basic.clearScreen()
     }
     basic.showIcon(IconNames.Heart)
 })
-// subtracts all power's of 2 that are greater than DeviceID then we try and divide to see if we get a result ≥ 1 which would mean that this DeviceID is allowed to repeat
-function containsExtenderID (charcode: number) {
-    shouldExtendcharcode = charcode
-    loopIndex = 15
-    while (loopIndex > deviceID % 16) {
-        // Only subtract if that power exist (Ie Charcode is larger than the 2's power)
-        if (2 ** loopIndex <= shouldExtendcharcode) {
-            shouldExtendcharcode = shouldExtendcharcode - 2 ** loopIndex
-        }
-        loopIndex += -1
-    }
-    return shouldExtendcharcode / 2 ** (deviceID % 16) >= 1
-}
-// Joins Repeater ID bits and message, animates display and sends radio
-function extendSignal (extensionBits: string, Extendmessage: string) {
-    radioMessage = "" + extensionBits + Extendmessage
-    animateExtension()
-    radio.sendString(radioMessage)
-}
 // IF
 // name == "NextID" then change our NextID to be equal to new.
 // ELSE
@@ -91,7 +91,18 @@ function extendSignal (extensionBits: string, Extendmessage: string) {
 // New transmission 1001000 = Value
 radio.onReceivedValue(function (name, value) {
     if (name == "NextID") {
-        nextID = value
+        if (value > nextID) {
+            nextID = value
+            radio.sendValue("NextID", nextID)
+        } else if (value < nextID) {
+            radio.sendValue("NextID", nextID)
+        } else {
+        	
+        }
+    } else if (name == "ImNew" && value < nextID) {
+        radio.sendValue("NextID", nextID)
+    } else {
+    	
     }
 })
 function animateExtension () {
@@ -142,23 +153,20 @@ function animateExtension () {
     basic.clearScreen()
 }
 function sendTestMSG () {
-    loopIndex = 0
-    radioMessage = ""
-    charcode = 0
-    // Valid exponents range from 0-15 (16 different values 1 for each id)
-    while (loopIndex < 16) {
-        // index can range from 0 - 31 but by using remainder of / 16 we will then map 16-31 to 0-15
-        if (loopIndex != deviceID % 16) {
-            charcode = charcode + 2 ** loopIndex
+    sendTestMSGcharcode = 0
+    for (let index2 = 0; index2 < countIDChars; index2++) {
+        sendTestMSGmessage = "" + sendTestMSGmessage + String.fromCharCode(2 ** countIDsInChar - 1)
+    }
+    for (let index = 0; index <= 7; index++) {
+        if (index != idPosInChar) {
+            sendTestMSGcharcode = sendTestMSGcharcode + 2 ** index
         }
-        loopIndex += 1
     }
-    if (deviceID < 16) {
-        radioMessage = "" + String.fromCharCode(2 ** 16 - 1) + String.fromCharCode(charcode) + String.fromCharCode(255) + String.fromCharCode(35) + String.fromCharCode(1023)
-    } else {
-        radioMessage = "" + String.fromCharCode(charcode) + String.fromCharCode(2 ** 16 - 1) + String.fromCharCode(255) + String.fromCharCode(35) + String.fromCharCode(1023)
-    }
-    radio.sendString(radioMessage)
+    sendTestMSGmessage = replaceCharAt(String.fromCharCode(sendTestMSGcharcode), "" + sendTestMSGmessage + String.fromCharCode(1) + String.fromCharCode(2) + String.fromCharCode(0) + String.fromCharCode(0) + String.fromCharCode(0) + String.fromCharCode(3), idMsgPos)
+    radio.sendString(sendTestMSGmessage)
+}
+function replaceCharAt (charReplacement: string, string: string, index: number) {
+    return "" + string.substr(0, index) + "" + charReplacement + "" + string.substr(index + 1, string.length - (index + 1))
 }
 // Animate what the next available ID is
 function IdNotSet () {
@@ -166,21 +174,27 @@ function IdNotSet () {
     basic.clearScreen()
     basic.pause(1000)
 }
-let charcode = 0
-let shouldExtendcharcode = 0
-let radioMessage = ""
-let extenderSignal = 0
-let loopIndex = 0
-let toCharCodecharcode = 0
+let sendTestMSGmessage = ""
+let sendTestMSGcharcode = 0
+let radioReceivedextenderSignal = 0
+let toCharcodecharcode = 0
+let index = 0
+let containsOurIDcharcode = 0
+let idPosInChar = 0
+let idMsgPos = 0
+let countIDsInChar = 0
+let countIDChars = 0
 let deviceID = 0
 let nextID = 0
-radio.setGroup(137)
-radio.sendMessage(RadioMessage.DEBUG_Spawn_2nd_Microbit)
-// Valid ID's are from 0-31
+radio.setGroup(144)
 nextID = 0
-// -1 = no ID has been set yet
 deviceID = -1
+radio.sendValue("ImNew", nextID)
 while (deviceID == -1) {
     IdNotSet()
 }
+countIDChars = 3
+countIDsInChar = 8
+idMsgPos = Math.idiv(deviceID, countIDsInChar)
+idPosInChar = deviceID % countIDsInChar
 basic.showIcon(IconNames.Heart)
