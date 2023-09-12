@@ -45,7 +45,7 @@ input.onButtonPressed(Button.A, function () {
     }
 })
 function showData (recivedText: string) {
-    for (let index = 0; index <= 8 - countIDChars; index++) {
+    for (let index = 0; index <= 13 - countIDChars; index++) {
         basic.showNumber(index)
         basic.clearScreen()
         basic.pause(100)
@@ -59,7 +59,7 @@ function toCharcode (char: string) {
         return -1
     }
     toCharcodecharcode = 0
-    index = countIDsInChar - 1
+    index = 8 - 1
     while (char != String.fromCharCode(toCharcodecharcode)) {
         if (char.compare(String.fromCharCode(2 ** index + toCharcodecharcode)) >= 0) {
             toCharcodecharcode += 2 ** index
@@ -154,15 +154,15 @@ function animateExtension () {
 }
 function sendTestMSG () {
     sendTestMSGcharcode = 0
-    for (let index2 = 0; index2 < countIDChars; index2++) {
+    for (let index = 0; index <= countIDChars - 1; index++) {
         sendTestMSGmessage = "" + sendTestMSGmessage + String.fromCharCode(2 ** countIDsInChar - 1)
     }
-    for (let index = 0; index <= 7; index++) {
+    for (let index = 0; index <= 6; index++) {
         if (index != idPosInChar) {
             sendTestMSGcharcode = sendTestMSGcharcode + 2 ** index
         }
     }
-    sendTestMSGmessage = replaceCharAt(String.fromCharCode(sendTestMSGcharcode), "" + sendTestMSGmessage + String.fromCharCode(1) + String.fromCharCode(2) + String.fromCharCode(0) + String.fromCharCode(0) + String.fromCharCode(0) + String.fromCharCode(3), idMsgPos)
+    sendTestMSGmessage = replaceCharAt(String.fromCharCode(sendTestMSGcharcode), "" + sendTestMSGmessage + String.fromCharCode(35) + String.fromCharCode(255) + String.fromCharCode(255) + String.fromCharCode(255) + String.fromCharCode(255) + String.fromCharCode(255), idMsgPos)
     radio.sendString(sendTestMSGmessage)
 }
 function replaceCharAt (charReplacement: string, string: string, index: number) {
@@ -193,8 +193,8 @@ radio.sendValue("ImNew", nextID)
 while (deviceID == -1) {
     IdNotSet()
 }
-countIDChars = 3
-countIDsInChar = 8
+countIDChars = 8
+countIDsInChar = 7
 idMsgPos = Math.idiv(deviceID, countIDsInChar)
 idPosInChar = deviceID % countIDsInChar
 basic.showIcon(IconNames.Heart)
