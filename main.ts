@@ -89,7 +89,7 @@ function toCharCode (char: string) {
     toCharcodecharcode = 0
     // 255 Is the Largest char a Micro:bit can handel.
     index = 8 - 1
-    while (char != String.fromCharCode(toCharcodecharcode) && index != 0) {
+    while (char != String.fromCharCode(toCharcodecharcode) && index != -1) {
         if (char.compare(String.fromCharCode(2 ** index + toCharcodecharcode)) >= 0) {
             toCharcodecharcode += 2 ** index
         }
